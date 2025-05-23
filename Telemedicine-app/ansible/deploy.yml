@@ -1,0 +1,54 @@
+---
+- name: Deploy Telemedicine App
+  hosts: local
+  become: false
+  vars_files:
+    - vault/secrets.yml
+  
+  tasks:
+    - name: Create project directory if it doesn't exist
+      file:
+        path: "/tmp/telemedicine-app"
+        state: directory
+        mode: '0755'
+      
+    - name: Clean existing deployments
+      file:
+        path: "/tmp/telemedicine-app"
+        state: absent
+      
+    - name: Create fresh project directory
+      file:
+        path: "/tmp/telemedicine-app"
+        state: directory
+        mode: '0755'
+      
+    - name: Clone the repository
+      git:
+        repo: "https://github.com/123AnkitSharma/SPE_ProjectDemo.git"
+        dest: "/tmp/telemedicine-app"
+        version: main
+      
+    - name: Login to DockerHub
+      command: docker login -u {{ docker_hub_username }} -p {{ docker_hub_password }}
+      no_log: true
+      
+    - name: Build and start Docker containers
+      command: docker-compose up -d --build
+      args:
+        chdir: "/tmp/telemedicine-app/Telemedicine-app"
+      environment:
+        MONGO_URI: "{{ mongo_uri }}"
+        JWT_SECRET: "{{ jwt_secret }}"
+        
+    - name: Wait for the application to start
+      pause:
+        seconds: 10
+        
+    - name: Verify containers are running
+      command: docker ps
+      register: docker_status
+      
+    - name: Show running containers
+      debug:
+        var: docker_status.stdout_lines

@@ -1,0 +1,58 @@
+pipeline {
+    agent any
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scmGit(
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[url: 'https://github.com/123AnkitSharma/SPE_ProjectDemo.git']]
+                )
+            }
+        }
+        
+        stage('Setup Ansible') {
+            steps {
+                script {
+                    sh 'mkdir -p ~/.ansible'
+                    sh 'echo "[defaults]\\nhost_key_checking = False" > ~/.ansible/ansible.cfg'
+                }
+            }
+        }
+        
+        stage('Create Vault Password File') {
+            steps {
+                withCredentials([string(credentialsId: 'ansible-vault-password', variable: 'VAULT_PASSWORD')]) {
+                    sh 'echo "$VAULT_PASSWORD" > Telemedicine-app/ansible/vault/.vault_password.txt'
+                    sh 'chmod 600 Telemedicine-app/ansible/vault/.vault_password.txt'
+                }
+            }
+        }
+        
+        stage('Deploy with Ansible') {
+            steps {
+                dir('Telemedicine-app') {
+                    sh 'ansible-playbook -i ansible/inventory ansible/deploy.yml --vault-password-file ansible/vault/.vault_password.txt'
+                }
+            }
+        }
+        
+        stage('Cleanup') {
+            steps {
+                sh 'rm -f Telemedicine-app/ansible/vault/.vault_password.txt'
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo 'Deployment successful!'
+        }
+        failure {
+            echo 'Deployment failed!'
+        }
+        always {
+            cleanWs()
+        }
+    }
+}
