@@ -39,6 +39,23 @@ pipeline {
             }
         }
         
+        stage('Deploy to Kubernetes') {
+            steps {
+                dir('Telemedicine-app/k8s') {
+                    sh 'chmod +x deploy.sh'
+                    sh './deploy.sh'
+                }
+            }
+        }
+        
+        stage('Verify Kubernetes Deployment') {
+            steps {
+                sh 'kubectl get pods'
+                sh 'kubectl rollout status deployment/frontend'
+                sh 'kubectl rollout status deployment/backend'
+            }
+        }
+        
         stage('Setup Ansible') {
             steps {
                 script {
@@ -71,6 +88,14 @@ pipeline {
                 sh 'docker rmi ${DOCKERHUB_CREDENTIALS_USR}/telemedicine-backend:${VERSION} || true'
                 sh 'docker rmi ${DOCKERHUB_CREDENTIALS_USR}/telemedicine-frontend:${VERSION} || true'
                 sh 'docker logout'
+            }
+        }
+        
+        stage('Test') {
+            steps {
+                dir('Telemedicine-app') {
+                    sh 'npm test'
+                }
             }
         }
     }
