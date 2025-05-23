@@ -43,8 +43,10 @@
         
     # Apply secrets to Kubernetes
     - name: Apply Kubernetes secrets
-      command: kubectl apply -f /tmp/telemedicine-k8s/secrets.yaml --validate=false
-        
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+      command: kubectl apply -f /tmp/telemedicine-k8s/secrets.yaml
+
     # Make deploy.sh executable
     - name: Make deploy script executable
       file:
@@ -53,6 +55,8 @@
         
     # Execute the Kubernetes deployment
     - name: Deploy application with Kubernetes
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
       command: /tmp/telemedicine-k8s/deploy.sh
       args:
         chdir: "/tmp/telemedicine-k8s"
