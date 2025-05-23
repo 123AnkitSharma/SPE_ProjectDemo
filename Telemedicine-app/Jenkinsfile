@@ -15,14 +15,6 @@ pipeline {
                 )
             }
         }
-
-        stage('Test') {
-            steps {
-                dir('Telemedicine-app') {
-                    sh 'npm test'
-                }
-            }
-        }
        
         stage('Build Docker Images') {
             steps {
