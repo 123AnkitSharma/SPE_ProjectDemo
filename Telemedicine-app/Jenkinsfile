@@ -15,7 +15,15 @@ pipeline {
                 )
             }
         }
-        
+
+        stage('Test') {
+            steps {
+                dir('Telemedicine-app') {
+                    sh 'npm test'
+                }
+            }
+        }
+       
         stage('Build Docker Images') {
             steps {
                 dir('Telemedicine-app') {
@@ -88,14 +96,6 @@ pipeline {
                 sh 'docker rmi ${DOCKERHUB_CREDENTIALS_USR}/telemedicine-backend:${VERSION} || true'
                 sh 'docker rmi ${DOCKERHUB_CREDENTIALS_USR}/telemedicine-frontend:${VERSION} || true'
                 sh 'docker logout'
-            }
-        }
-        
-        stage('Test') {
-            steps {
-                dir('Telemedicine-app') {
-                    sh 'npm test'
-                }
             }
         }
     }
