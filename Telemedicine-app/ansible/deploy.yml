@@ -36,7 +36,7 @@
         
     # Apply secrets to Kubernetes
     - name: Apply Kubernetes secrets
-      command: kubectl apply -f /tmp/telemedicine-k8s/secrets.yaml
+      command: kubectl apply -f /tmp/telemedicine-k8s/secrets.yaml --validate=false
         
     # Make deploy.sh executable
     - name: Make deploy script executable
