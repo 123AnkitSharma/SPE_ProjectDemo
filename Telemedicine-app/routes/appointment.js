@@ -35,6 +35,7 @@ router.post('/', auth, async (req, res) => {
     
     // 3. Check if the appointment date is on a day the doctor is available
     const appointmentDate = new Date(date);
+    appointmentDate.setHours(12, 0, 0, 0);
     const dayOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][appointmentDate.getDay()];
     
     const dayAvailability = doctorData.availability.find(avail => avail.day === dayOfWeek);
