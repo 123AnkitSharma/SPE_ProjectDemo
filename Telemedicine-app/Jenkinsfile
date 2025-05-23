@@ -58,8 +58,25 @@ pipeline {
         stage('Cleanup') {
             steps {
                 sh 'rm -f Telemedicine-app/ansible/vault/.vault_password.txt'
+                
+                // Remove current build images
                 sh 'docker rmi ${DOCKERHUB_CREDENTIALS_USR}/telemedicine-backend:${VERSION} || true'
                 sh 'docker rmi ${DOCKERHUB_CREDENTIALS_USR}/telemedicine-frontend:${VERSION} || true'
+                
+                // Keep only latest tag and 3 most recent versions
+                sh '''
+                    # Get all image IDs for backend except latest and 3 newest tags
+                    BACKEND_IMAGES=$(docker images ${DOCKERHUB_CREDENTIALS_USR}/telemedicine-backend --format "{{.ID}} {{.Tag}}" | grep -v latest | sort -k2nr | awk 'NR>3 {print $1}')
+                    
+                    # Get all image IDs for frontend except latest and 3 newest tags
+                    FRONTEND_IMAGES=$(docker images ${DOCKERHUB_CREDENTIALS_USR}/telemedicine-frontend --format "{{.ID}} {{.Tag}}" | grep -v latest | sort -k2nr | awk 'NR>3 {print $1}')
+                    
+                    # Remove old images
+                    for img in $BACKEND_IMAGES $FRONTEND_IMAGES; do
+                        docker rmi $img || true
+                    done
+                '''
+                
                 sh 'docker logout'
             }
         }
