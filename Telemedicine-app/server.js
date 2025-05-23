@@ -46,7 +46,7 @@ mongoose.connect(process.env.MONGO_URI)
         await User.create({
           name: 'Admin',
           email: process.env.DEFAULT_ADMIN_EMAIL || 'admin@gmail.com',
-          password: process.env.DEFAULT_ADMIN_PASSWORD || 'admin123', // Plain text - will be hashed by pre-save hook
+          password: process.env.DEFAULT_ADMIN_PASSWORD || 'admin@123', 
           role: 'admin',
           status: 'active'
         });

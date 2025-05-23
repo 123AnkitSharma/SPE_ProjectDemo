@@ -40,6 +40,11 @@
           MONGO_URI={{ mongo_uri }}
           JWT_SECRET={{ jwt_secret }}
           NODE_ENV=production
+          CLOUDINARY_CLOUD_NAME={{ cloudinary_cloud_name }}
+          CLOUDINARY_API_KEY={{ cloudinary_api_key }}
+          CLOUDINARY_API_SECRET={{ cloudinary_api_secret }}
+          DEFAULT_ADMIN_EMAIL={{ default_admin_email }}
+          DEFAULT_ADMIN_PASSWORD={{ default_admin_password }}
 
     - name: Build and start Docker containers
       command: docker compose up -d --build
