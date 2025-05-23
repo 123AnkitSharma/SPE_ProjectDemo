@@ -34,7 +34,7 @@
       no_log: true
       
     - name: Build and start Docker containers
-      command: docker-compose up -d --build
+      command: docker compose up -d --build
       args:
         chdir: "/tmp/telemedicine-app/Telemedicine-app"
       environment:
