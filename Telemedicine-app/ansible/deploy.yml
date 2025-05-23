@@ -36,7 +36,7 @@
       
     - name: Create .env file
       copy:
-        dest: "/tmp/telemedicine-app/Telemedicine-app/.env"
+        dest: "/tmp/telemedicine-app/.env"
         content: |
           MONGO_URI={{ mongo_uri }}
           JWT_SECRET={{ jwt_secret }}
@@ -46,17 +46,11 @@
           CLOUDINARY_API_SECRET={{ cloudinary_api_secret }}
           DEFAULT_ADMIN_EMAIL={{ default_admin_email }}
           DEFAULT_ADMIN_PASSWORD={{ default_admin_password }}
-
-    - name: Ensure nested Telemedicine-app directory exists
-      file:
-        path: "/tmp/telemedicine-app/Telemedicine-app"
-        state: directory
-        mode: '0755'
         
     - name: Build and start Docker containers
       command: docker compose up -d --build
       args:
-        chdir: "/tmp/telemedicine-app/Telemedicine-app"
+        chdir: "/tmp/telemedicine-app"
       environment:
         MONGO_URI: "{{ mongo_uri }}"
         JWT_SECRET: "{{ jwt_secret }}"
