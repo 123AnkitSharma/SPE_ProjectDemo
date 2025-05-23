@@ -33,6 +33,14 @@
       command: docker login -u {{ docker_hub_username }} -p {{ docker_hub_password }}
       no_log: true
       
+    - name: Create .env file
+      copy:
+        dest: "/tmp/telemedicine-app/Telemedicine-app/.env"
+        content: |
+          MONGO_URI={{ mongo_uri }}
+          JWT_SECRET={{ jwt_secret }}
+          NODE_ENV=production
+
     - name: Build and start Docker containers
       command: docker compose up -d --build
       args:
