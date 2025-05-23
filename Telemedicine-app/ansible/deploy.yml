@@ -47,6 +47,12 @@
           DEFAULT_ADMIN_EMAIL={{ default_admin_email }}
           DEFAULT_ADMIN_PASSWORD={{ default_admin_password }}
 
+    - name: Ensure nested Telemedicine-app directory exists
+      file:
+        path: "/tmp/telemedicine-app/Telemedicine-app"
+        state: directory
+        mode: '0755'
+        
     - name: Build and start Docker containers
       command: docker compose up -d --build
       args:
