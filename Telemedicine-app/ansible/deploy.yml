@@ -23,11 +23,12 @@
         state: directory
         mode: '0755'
       
-    - name: Clone the repository
-      git:
-        repo: "https://github.com/123AnkitSharma/SPE_ProjectDemo.git"
+    - name: Copy project files from Jenkins workspace
+      synchronize:
+        src: "{{ playbook_dir }}/../"
         dest: "/tmp/telemedicine-app"
-        version: main
+        rsync_opts:
+          - "--exclude=.git"
       
     - name: Login to DockerHub
       command: docker login -u {{ docker_hub_username }} -p {{ docker_hub_password }}
