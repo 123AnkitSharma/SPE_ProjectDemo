@@ -31,13 +31,11 @@ pipeline {
         
         stage('Push to DockerHub') {
             steps {
-                withCredentials([string(credentialsId: 'docker-hub-credentials', variable: 'DOCKERHUB_CREDENTIALS')]) {
-                    sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
-                    sh 'docker push $DOCKERHUB_CREDENTIALS_USR/telemedicine-backend:1'
-                    sh 'docker push $DOCKERHUB_CREDENTIALS_USR/telemedicine-frontend:1'
-                    sh 'docker push $DOCKERHUB_CREDENTIALS_USR/telemedicine-backend:latest'
-                    sh 'docker push $DOCKERHUB_CREDENTIALS_USR/telemedicine-frontend:latest'
-                }
+                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                sh 'docker push ${DOCKERHUB_CREDENTIALS_USR}/telemedicine-backend:${VERSION}'
+                sh 'docker push ${DOCKERHUB_CREDENTIALS_USR}/telemedicine-frontend:${VERSION}'
+                sh 'docker push ${DOCKERHUB_CREDENTIALS_USR}/telemedicine-backend:latest'
+                sh 'docker push ${DOCKERHUB_CREDENTIALS_USR}/telemedicine-frontend:latest'
             }
         }
         
