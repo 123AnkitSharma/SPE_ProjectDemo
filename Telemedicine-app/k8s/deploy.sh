@@ -5,7 +5,6 @@ kubectl apply -f mongodb/
 kubectl apply -f backend/
 kubectl apply -f frontend/
 kubectl apply -f ingress.yaml
-kubectl apply -f k8s-jenkins-sa.yaml
 
 # Wait for deployments to be ready
 
