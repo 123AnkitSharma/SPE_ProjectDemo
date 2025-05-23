@@ -43,7 +43,7 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'ansible-vault-password', variable: 'VAULT_PASSWORD')]) {
                     sh 'echo "$VAULT_PASSWORD" > Telemedicine-app/ansible/vault/.vault_password.txt'
-                    sh 'chmod 777 Telemedicine-app/ansible/vault/.vault_password.txt'
+                    sh 'chmod 600 Telemedicine-app/ansible/vault/.vault_password.txt'
                 }
                 
                 // Use kubeconfig file
