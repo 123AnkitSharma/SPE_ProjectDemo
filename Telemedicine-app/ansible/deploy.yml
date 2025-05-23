@@ -23,12 +23,12 @@
         state: directory
         mode: '0755'
       
-    - name: Copy project files from Jenkins workspace
-      synchronize:
-        src: "{{ playbook_dir }}/../"
-        dest: "/tmp/telemedicine-app"
-        rsync_opts:
-          - "--exclude=.git"
+    - name: Copy docker-compose.yml and .env to server
+      copy:
+        src: "{{ playbook_dir }}/../{{ item }}"
+        dest: "/tmp/telemedicine-app/{{ item }}"
+      with_items:
+        - docker-compose.yml
       
     - name: Login to DockerHub
       command: docker login -u {{ docker_hub_username }} -p {{ docker_hub_password }}
@@ -46,14 +46,22 @@
           CLOUDINARY_API_SECRET={{ cloudinary_api_secret }}
           DEFAULT_ADMIN_EMAIL={{ default_admin_email }}
           DEFAULT_ADMIN_PASSWORD={{ default_admin_password }}
+          DOCKERHUB_USERNAME={{ docker_hub_username }}
+          VERSION={{ version | default('latest') }}
         
-    - name: Build and start Docker containers
-      command: docker compose up -d --build
+    - name: Pull Docker images
+      command: docker pull {{ docker_hub_username }}/{{ item }}:{{ version | default('latest') }}
+      with_items:
+        - telemedicine-backend
+        - telemedicine-frontend
+        
+    - name: Start Docker containers
+      command: docker compose up -d
       args:
         chdir: "/tmp/telemedicine-app"
       environment:
-        MONGO_URI: "{{ mongo_uri }}"
-        JWT_SECRET: "{{ jwt_secret }}"
+        DOCKERHUB_USERNAME: "{{ docker_hub_username }}"
+        VERSION: "{{ version | default('latest') }}"
         
     - name: Wait for the application to start
       pause:
