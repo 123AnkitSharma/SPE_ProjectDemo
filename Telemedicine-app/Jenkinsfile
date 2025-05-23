@@ -68,10 +68,8 @@ pipeline {
         stage('Cleanup') {
             steps {
                 sh 'rm -f Telemedicine-app/ansible/vault/.vault_password.txt'
-                sh 'docker rmi ${DOCKERHUB_CREDENTIALS_USR}/telemedicine-backend:${VERSION}'
-                sh 'docker rmi ${DOCKERHUB_CREDENTIALS_USR}/telemedicine-frontend:${VERSION}'
-                sh 'docker rmi ${DOCKERHUB_CREDENTIALS_USR}/telemedicine-backend:latest'
-                sh 'docker rmi ${DOCKERHUB_CREDENTIALS_USR}/telemedicine-frontend:latest'
+                sh 'docker rmi ${DOCKERHUB_CREDENTIALS_USR}/telemedicine-backend:${VERSION} || true'
+                sh 'docker rmi ${DOCKERHUB_CREDENTIALS_USR}/telemedicine-frontend:${VERSION} || true'
                 sh 'docker logout'
             }
         }
