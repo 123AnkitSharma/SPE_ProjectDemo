@@ -1,76 +1,60 @@
 ---
-- name: Deploy Telemedicine App
+- name: Deploy Telemedicine App Infrastructure
   hosts: local
   become: false
   vars_files:
     - vault/secrets.yml
   
   tasks:
-    - name: Create project directory if it doesn't exist
+    - name: Ensure kubectl is installed
+      command: which kubectl
+      register: kubectl_check
+      ignore_errors: true
+      
+    - name: Install kubectl if missing
+      shell: curl -LO "https://dl.k8s.io/release/stable.txt" && curl -LO "https://dl.k8s.io/$(cat stable.txt)/bin/linux/amd64/kubectl" && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+      when: kubectl_check.rc != 0
+
+    - name: Create temp directory for Kubernetes configs
       file:
-        path: "/tmp/telemedicine-app"
+        path: "/tmp/telemedicine-k8s"
         state: directory
         mode: '0755'
-      
-    - name: Clean existing deployments
+        
+    # Copy K8s manifests
+    - name: Copy Kubernetes manifests
+      copy:
+        src: "{{ playbook_dir }}/../k8s/"
+        dest: "/tmp/telemedicine-k8s/"
+        mode: preserve
+        
+    # Create secrets for Kubernetes
+    - name: Create Kubernetes secrets file
+      template:
+        src: "{{ playbook_dir }}/templates/secrets.yaml.j2"
+        dest: "/tmp/telemedicine-k8s/secrets.yaml"
+        
+    # Apply secrets to Kubernetes
+    - name: Apply Kubernetes secrets
+      command: kubectl apply -f /tmp/telemedicine-k8s/secrets.yaml
+        
+    # Make deploy.sh executable
+    - name: Make deploy script executable
       file:
-        path: "/tmp/telemedicine-app"
-        state: absent
-      
-    - name: Create fresh project directory
-      file:
-        path: "/tmp/telemedicine-app"
-        state: directory
+        path: "/tmp/telemedicine-k8s/deploy.sh"
         mode: '0755'
-      
-    - name: Copy docker-compose.yml and .env to server
-      copy:
-        src: "{{ playbook_dir }}/../{{ item }}"
-        dest: "/tmp/telemedicine-app/{{ item }}"
-      with_items:
-        - docker-compose.yml
-      
-    - name: Login to DockerHub
-      command: docker login -u {{ docker_hub_username }} -p {{ docker_hub_password }}
-      no_log: true
-      
-    - name: Create .env file
-      copy:
-        dest: "/tmp/telemedicine-app/.env"
-        content: |
-          MONGO_URI={{ mongo_uri }}
-          JWT_SECRET={{ jwt_secret }}
-          NODE_ENV=production
-          CLOUDINARY_CLOUD_NAME={{ cloudinary_cloud_name }}
-          CLOUDINARY_API_KEY={{ cloudinary_api_key }}
-          CLOUDINARY_API_SECRET={{ cloudinary_api_secret }}
-          DEFAULT_ADMIN_EMAIL={{ default_admin_email }}
-          DEFAULT_ADMIN_PASSWORD={{ default_admin_password }}
-          DOCKERHUB_USERNAME={{ docker_hub_username }}
-          VERSION={{ version | default('latest') }}
         
-    - name: Pull Docker images
-      command: docker pull {{ docker_hub_username }}/{{ item }}:{{ version | default('latest') }}
-      with_items:
-        - telemedicine-backend
-        - telemedicine-frontend
-        
-    - name: Start Docker containers
-      command: docker compose up -d
+    # Execute the Kubernetes deployment
+    - name: Deploy application with Kubernetes
+      command: /tmp/telemedicine-k8s/deploy.sh
       args:
-        chdir: "/tmp/telemedicine-app"
-      environment:
-        DOCKERHUB_USERNAME: "{{ docker_hub_username }}"
-        VERSION: "{{ version | default('latest') }}"
-        
-    - name: Wait for the application to start
-      pause:
-        seconds: 10
-        
-    - name: Verify containers are running
-      command: docker ps
-      register: docker_status
+        chdir: "/tmp/telemedicine-k8s"
       
-    - name: Show running containers
+    # Verify deployment
+    - name: Verify Kubernetes deployments
+      command: kubectl get pods
+      register: k8s_pods
+      
+    - name: Show running pods
       debug:
-        var: docker_status.stdout_lines
+        var: k8s_pods.stdout_lines
